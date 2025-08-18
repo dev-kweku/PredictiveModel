@@ -1,0 +1,59 @@
+
+    Disaster Data Summary Report
+    ============================
+    
+    Data Overview:
+    - Total records: 649
+    - Date range: 2016-06-24 to 2024-12-30
+    - Unique disaster types: 22
+    - Unique locations: 454
+    
+    Disaster Type Distribution:
+    Disaster_Type
+DOMESTIC FIRE                   174
+FLOOD                           172
+RAINSTORM                       127
+WINDSTORM                        90
+MAN MADE                         22
+COMMERCIAL FIRE                  21
+TIDAL WAVES                       8
+ROAD ACCIDENT                     5
+BUILDING COLLAPSE                 5
+LANDSLIDE                         4
+EPIDEMICS                         3
+PEST INFESTATION                  3
+BUSH FIRE                         2
+EXPLOSION                         2
+DROWNING                          2
+COMERCIAL FIRE                    2
+MAN MADE(BUILDING COLLAPSE)       2
+LIGHTNING                         1
+INDUSTRIAL FIRE                   1
+DROWN                             1
+MAN MADE (BUILDING COLLAPSE)      1
+MAN MADE(DROWNING)                1
+    
+    Top 5 Locations:
+    Location
+MPOHOR      7
+ESIAMA      7
+ZONGO       6
+BANSO       6
+AKYEMPIM    5
+    
+    Severity Distribution:
+    Severity
+1    644
+2      3
+3      2
+    
+    Yearly Distribution:
+    Date
+2016      1
+2019    174
+2020    145
+2021     86
+2022    130
+2023     76
+2024     37
+    
