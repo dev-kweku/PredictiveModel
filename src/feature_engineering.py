@@ -1,128 +1,65 @@
-# src/feature_engineering.py
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder
 
-def create_temporal_features(df):
-    """Create time-based features"""
-    df = df.copy()
+def create_features(df):
+    """
+    Create features for machine learning model
+    """
+    # Check if required columns exist
+    if 'location' not in df.columns:
+        raise ValueError("DataFrame must contain 'location' column")
+    if 'disaster_type' not in df.columns:
+        raise ValueError("DataFrame must contain 'disaster_type' column")
     
-    # Extract temporal components
-    df['Year'] = df['Date'].dt.year
-    df['Month'] = df['Date'].dt.month
-    df['Quarter'] = df['Date'].dt.quarter
-    df['DayOfWeek'] = df['Date'].dt.dayofweek
-    df['DayOfYear'] = df['Date'].dt.dayofyear
-    df['WeekOfYear'] = df['Date'].dt.isocalendar().week
+    # Location encoding
+    location_encoder = LabelEncoder()
+    df['location_encoded'] = location_encoder.fit_transform(df['location'])
     
-    # Create season feature
-    def get_season(month):
-        if month in [12, 1, 2]:
-            return 'WINTER'
-        elif month in [3, 4, 5]:
-            return 'SPRING'
-        elif month in [6, 7, 8]:
-            return 'SUMMER'
-        else:
-            return 'FALL'
+    # Disaster type encoding
+    disaster_encoder = LabelEncoder()
+    df['disaster_encoded'] = disaster_encoder.fit_transform(df['disaster_type'])
     
-    df['Season'] = df['Month'].apply(get_season)
+    # Season feature
+    df['season'] = df['month'].apply(lambda x: 
+        'Spring' if x in [3,4,5] else
+        'Summer' if x in [6,7,8] else
+        'Fall' if x in [9,10,11] else 'Winter')
     
-    # Weekend indicator
-    df['Is_Weekend'] = df['DayOfWeek'] >= 5
+    # Ensure all seasons are represented in the data
+    all_seasons = ['Spring', 'Summer', 'Fall', 'Winter']
+    existing_seasons = df['season'].unique()
     
-    return df
-
-def create_historical_features(df):
-    """Create historical frequency features"""
-    df = df.copy()
-    
-    # Location history count
-    location_counts = df['Location'].value_counts().to_dict()
-    df['Location_History_Count'] = df['Location'].map(location_counts)
-    
-    # Disaster type history count
-    disaster_counts = df['Disaster_Type'].value_counts().to_dict()
-    df['Disaster_History_Count'] = df['Disaster_Type'].map(disaster_counts)
-    
-    # Location-disaster combination history
-    location_disaster_counts = df.groupby(['Location', 'Disaster_Type']).size().to_dict()
-    df['Location_Disaster_History'] = df.apply(
-        lambda row: location_disaster_counts.get((row['Location'], row['Disaster_Type']), 0), 
-        axis=1
-    )
-    
-    # Create time-based historical features using a different approach
-    # First, sort by date
-    df = df.sort_values('Date')
-    
-    # Create a copy with date as index for time-based operations
-    df_indexed = df.set_index('Date')
-    
-    # Initialize columns with zeros
-    df['Disasters_Last_30_Days'] = 0
-    df['Disasters_Last_90_Days'] = 0
-    
-    # For each disaster type, calculate rolling counts
-    for disaster_type in df['Disaster_Type'].unique():
-        # Filter for this disaster type
-        mask = df['Disaster_Type'] == disaster_type
-        
-        # Get dates for this disaster type
-        dates = df.loc[mask, 'Date']
-        
-        # For each date, count disasters in the last 30 and 90 days
-        for i, date in enumerate(dates):
-            # Calculate 30-day window
-            start_date_30 = date - pd.Timedelta(days=30)
-            # Count disasters in the 30 days before this date (not including this date)
-            count_30 = ((dates >= start_date_30) & (dates < date)).sum()
-            df.loc[mask & (df['Date'] == date), 'Disasters_Last_30_Days'] = count_30
+    missing_seasons = [s for s in all_seasons if s not in existing_seasons]
+    if missing_seasons:
+        print(f"Adding dummy rows for missing seasons: {missing_seasons}")
+        for season in missing_seasons:
+            # Create a dummy row for each missing season
+            dummy_row = df.iloc[0].copy()
+            dummy_row['season'] = season
+            # Set month to a value corresponding to the season
+            if season == 'Spring':
+                dummy_row['month'] = 4
+            elif season == 'Summer':
+                dummy_row['month'] = 7
+            elif season == 'Fall':
+                dummy_row['month'] = 10
+            else:  # Winter
+                dummy_row['month'] = 1
             
-            # Calculate 90-day window
-            start_date_90 = date - pd.Timedelta(days=90)
-            # Count disasters in the 90 days before this date (not including this date)
-            count_90 = ((dates >= start_date_90) & (dates < date)).sum()
-            df.loc[mask & (df['Date'] == date), 'Disasters_Last_90_Days'] = count_90
+            # Add the dummy row
+            df = pd.concat([df, dummy_row.to_frame().T], ignore_index=True)
     
-    return df
-
-def encode_categorical_features(df, categorical_cols):
-    """Encode categorical features using one-hot encoding"""
-    df_encoded = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
-    return df_encoded
-
-def prepare_features(df, target_col='Disaster_Type'):
-    """Prepare features for modeling"""
-    # Create temporal features
-    df = create_temporal_features(df)
+    # Season encoding
+    season_encoder = LabelEncoder()
+    df['season_encoded'] = season_encoder.fit_transform(df['season'])
     
-    # Create historical features
-    df = create_historical_features(df)
+    # Location disaster frequency (historical risk)
+    location_risk = df.groupby('location').size() / len(df)
+    df['location_risk'] = df['location'].map(location_risk)
     
-    # Define feature columns
-    feature_cols = [
-        'Year', 'Month', 'Quarter', 'DayOfWeek', 'DayOfYear', 'WeekOfYear',
-        'Season', 'Is_Weekend', 'Severity', 'Location_History_Count',
-        'Disaster_History_Count', 'Disasters_Last_30_Days', 
-        'Disasters_Last_90_Days', 'Location_Disaster_History'
-    ]
+    # Disaster type frequency
+    disaster_freq = df.groupby('disaster_type').size() / len(df)
+    df['disaster_freq'] = df['disaster_type'].map(disaster_freq)
     
-    # Select features and target
-    X = df[feature_cols]
-    y = df[target_col]
-    
-    # Encode categorical features
-    categorical_features = ['Season']
-    X_encoded = encode_categorical_features(X, categorical_features)
-    
-    return X_encoded, y
-
-if __name__ == "__main__":
-    # Example usage
-    import pandas as pd
-    df = pd.read_csv('../data/processed_data.csv')
-    df['Date'] = pd.to_datetime(df['Date'])
-    X, y = prepare_features(df)
-    print(f"Features shape: {X.shape}")
-    print(f"Target shape: {y.shape}")
+    return df, location_encoder, disaster_encoder, season_encoder

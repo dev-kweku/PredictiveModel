@@ -1,4 +1,0 @@
-2025-08-18 02:51:57,300 - ERROR - Error loading data: File not found: data\raw_data.txt
-2025-08-18 02:56:05,802 - ERROR - Error loading data: File not found: \data\Nadmo.new.xlsx
-2025-08-18 02:56:53,487 - INFO - Loading data from data\Nadmo.new.xlsx
-2025-08-18 02:56:54,365 - ERROR - Error loading data: Unable to parse string "KRAYAWKROM" at position 181 (sheet: Sheet1)
