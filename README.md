@@ -92,6 +92,20 @@ disaster_project/
 ├── requirements.txt
 ├── README.md
 └── check_raw_data.py
+
+
+
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Data Sources  │───▶│  Data Processing│───▶│  ML Model      │
+│ (CSV Files)     │    │   & Cleaning    │    │  Training      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                        │
+                                                        ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Forecasting   │◀───│   Model         │    │  Dashboard     │
+│  Engine        │    │  Evaluation    │    │  (Streamlit)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ### Directory Descriptions
