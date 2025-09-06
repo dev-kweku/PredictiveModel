@@ -334,6 +334,15 @@ elif page == "Prediction":
         # Remove the priority column
         prob_df = prob_df.drop(columns=['priority'])
         
+        # fig_proba = px.bar(
+        #     prob_df,
+        #     x='Probability',
+        #     y='Disaster Type',
+        #     orientation='h',
+        #     title="Disaster Type Probabilities",
+        #     color='Probability',
+        #     color_continuous_scale='Viridis'
+        # )
         fig_proba = px.bar(
             prob_df,
             x='Probability',
@@ -341,8 +350,10 @@ elif page == "Prediction":
             orientation='h',
             title="Disaster Type Probabilities",
             color='Probability',
-            color_continuous_scale='Viridis'
-        )
+            color_continuous_scale='Viridis',
+            category_orders={'Disaster Type': prob_df['Disaster Type'].tolist()}
+
+            )
         st.plotly_chart(fig_proba, use_container_width=True)
         
         st.dataframe(prob_df.style.format({'Probability': '{:.2f}%'}))
