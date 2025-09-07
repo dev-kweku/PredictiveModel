@@ -971,6 +971,9 @@ elif page == "Prediction":
         
 
         prob_df = prob_df.drop(columns=['priority'])
+
+
+        chart_height=max(250,50* len(prob_df))
         
 
         fig_proba = px.bar(
@@ -981,8 +984,10 @@ elif page == "Prediction":
             title="Disaster Type Probabilities",
             color='Probability',
             color_continuous_scale='Viridis',
-            category_orders={'Disaster Type': prob_df['Disaster Type'].tolist()}
+            category_orders={'Disaster Type': prob_df['Disaster Type'].tolist()},
+            height=chart_height
         )
+        fig_proba.update_layout(margin=dict(l=130,r=20,t=40,b=40))
         st.plotly_chart(fig_proba, use_container_width=True)
         
         st.dataframe(prob_df.style.format({'Probability': '{:.2f}%'}))
